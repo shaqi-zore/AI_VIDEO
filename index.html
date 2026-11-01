@@ -39,7 +39,7 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 完美运行版</p>
+        <p>全自动爆款视频拆解与渲染中枢 · Cloudflare Tunnel 完美版</p>
     </div>
     <div class="container">
         
@@ -57,7 +57,7 @@
 
         <!-- 终端处理状态 -->
         <div id="step-processing" style="display: none; text-align: center;">
-            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">与 Colab 主机通信中...</h3>
+            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">与 Colab 主机通信中 (已启用自动重试机制)...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
@@ -92,12 +92,14 @@
         const videoInput = document.getElementById('video-input');
         const analyzeBtn = document.getElementById('analyze-btn');
         const terminalScreen = document.getElementById('terminal-screen');
-        const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev';
+        
+        // 【已绑定最新 Cloudflare Tunnel 隧道地址】
+        const adamApiUrl = 'https://advisory-workforce-clarity-wal.trycloudflare.com';
 
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
                 document.getElementById('file-name-display').textContent = '已准备视频: ' + this.files[0].name;
-                document.getElementById('file-name-display').style.display = 'block'; // 已修复语法错误
+                document.getElementById('file-name-display').style.display = 'block';
                 analyzeBtn.disabled = false;
             }
         });
