@@ -1,9 +1,9 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adam AI Video Engine - Long Video Edition</title>
+    <title>Adam AI Video Engine - Local Dual-Model Edition</title>
     <style>
         :root {
             --bg-color: #0d1117; --panel-bg: #161b22; --primary: #2ea043; --primary-hover: #3fb950;
@@ -39,7 +39,7 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>长视频异步流水线 · 严格 10 秒步长高精度抽帧</p>
+        <p>云盘全本地双模型闭环引擎 · 零限流高精度长视频管线</p>
     </div>
     <div class="container">
         
@@ -48,16 +48,16 @@
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
                 <div class="upload-icon">📁</div>
-                <div class="upload-text">拖拽 1 分钟以上原视频到此处</div>
-                <div class="upload-hint">支持 MP4 / MOV 格式 · 异步架构零超时</div>
+                <div class="upload-text">拖拽长视频到此处进行云盘本地 AI 拆解</div>
+                <div class="upload-hint">支持 MP4 / MOV 格式 · 本地双模型闭环驱动</div>
                 <div id="file-name-display" style="margin-top:15px; color:var(--primary); font-weight:bold; display:none;"></div>
             </div>
-            <button class="btn" id="analyze-btn" disabled>启动异步智能拆解</button>
+            <button class="btn" id="analyze-btn" disabled>启动本地 AI 异步智能拆解</button>
         </div>
 
         <!-- 终端处理状态（轮询中） -->
         <div id="step-processing" style="display: none; text-align: center;">
-            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">后台异步处理中，请稍候...</h3>
+            <h3 id="processing-title" style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">后台双模型异步处理中，请稍候...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
@@ -65,24 +65,24 @@
         <div id="step-review" style="display: none; text-align: left;">
             <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px; text-align: center;">👀 拆解完成，全量参数确认</h3>
             
-            <label class="form-label">1. 提取的全部关键帧 (严格 10 秒时间轴横向排列):</label>
+            <label class="form-label">1. 提取的全部关键帧 (严格 10 秒步长时间轴横向排列):</label>
             <div id="review-keyframes-container" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background: var(--terminal-bg);">
             </div>
             
             <label class="form-label">2. Whisper 提取的口播内容 (可修改):</label>
             <textarea id="review-audio-text" class="form-textarea" rows="2"></textarea>
             
-            <label class="form-label">3. Gemini 智能推演的每段动作剧本与 Prompt (可修改):</label>
+            <label class="form-label">3. 本地 Qwen 视觉模型推演的动作剧本与 Prompt (可修改):</label>
             <textarea id="review-script" class="form-textarea" rows="10"></textarea>
             
-            <button class="btn" id="confirm-render-btn">确认剧本无误，启动 GPU 渲染</button>
+            <button class="btn" id="confirm-render-btn">确认剧本无误，启动本地 SVD 模型 GPU 渲染</button>
         </div>
 
         <!-- 结果展示 -->
         <div id="step-result" style="display: none; text-align: center;">
-            <div class="video-placeholder">▶ 视频处理完成</div>
-            <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">成片已回传至本地。</p>
+            <video id="result-video" controls style="width: 100%; max-height: 300px; border-radius: 6px; margin-bottom: 20px; background: #000;"></video>
+            <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">本地 GPU 渲染成功！</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">AI 闭环成片已生成。</p>
             <a href="#" class="btn" id="download-btn">下载最终成片</a>
             <a href="#" style="display: block; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: underline;" onclick="location.reload()">处理下一个视频</a>
         </div>
@@ -93,8 +93,8 @@
         const analyzeBtn = document.getElementById('analyze-btn');
         const terminalScreen = document.getElementById('terminal-screen');
         
-        // 【已绑定最新 Cloudflare Tunnel 隧道地址】
-        const adamApiUrl = 'https://author-speed-mobiles-bathroom.trycloudflare.com';
+        // 【已绑定最新 Cloudflare 隧道地址】
+        const adamApiUrl = 'https://taught-obituaries-milwaukee-expect.trycloudflare.com';
 
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
@@ -107,16 +107,14 @@
         analyzeBtn.addEventListener('click', async () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 正在秒级上传长视频至 Colab 后台任务队列...</p>';
+            terminalScreen.innerHTML = '<p>> 正在秒级上传长视频至云盘本地后端队列...</p>';
             
             const formData = new FormData();
             formData.append('video', videoInput.files[0]);
 
             try {
-                // 1. 发起异步任务创建请求（秒级返回 task_id，绝不超时）
                 const res = await fetch(`${adamApiUrl}/analyze`, { 
                     method: 'POST',
-                    headers: { 'ngrok-skip-browser-warning': 'true' },
                     body: formData 
                 });
                 
@@ -124,14 +122,11 @@
                 const initData = await res.json();
                 const taskId = initData.task_id;
 
-                terminalScreen.innerHTML += `<p class="highlight">> 任务创建成功 (ID: ${taskId.slice(0,8)}...)，开始异步轮询后台进度...</p>`;
+                terminalScreen.innerHTML += `<p class="highlight">> 异步任务已创建 (ID: ${taskId.slice(0,8)}...)，本地 Qwen 视觉模型正在深度解析...</p>`;
 
-                // 2. 启动轮询检查后台进度
                 const pollInterval = setInterval(async () => {
                     try {
-                        const statusRes = await fetch(`${adamApiUrl}/task_status/${taskId}`, {
-                            headers: { 'ngrok-skip-browser-warning': 'true' }
-                        });
+                        const statusRes = await fetch(`${adamApiUrl}/task_status/${taskId}`);
                         const taskData = await statusRes.json();
 
                         if (taskData.status === 'processing') {
@@ -140,12 +135,10 @@
                         } 
                         else if (taskData.status === 'completed') {
                             clearInterval(pollInterval);
-                            console.log("后台处理完成数据：", taskData);
                             
                             document.getElementById('step-processing').style.display = 'none';
                             document.getElementById('step-review').style.display = 'block';
                             
-                            // 渲染高精度关键帧
                             const framesContainer = document.getElementById('review-keyframes-container');
                             framesContainer.innerHTML = ''; 
                             
@@ -167,18 +160,17 @@
                                 framesContainer.appendChild(imgWrap);
                             });
 
-                            // 回填文本
                             document.getElementById('review-audio-text').value = taskData.audio_text || "";
                             document.getElementById('review-script').value = taskData.action_script || "";
                         }
                         else if (taskData.status === 'failed') {
                             clearInterval(pollInterval);
-                            throw new Error(taskData.error || '后台处理异常');
+                            throw new Error(taskData.error || '后台本地模型推理异常');
                         }
                     } catch (pollErr) {
                         console.warn("轮询网络波动，继续尝试...", pollErr);
                     }
-                }, 3000); // 每 3 秒轮询一次
+                }, 3000);
 
             } catch (error) {
                 console.error("前端报错：", error);
@@ -190,11 +182,12 @@
         document.getElementById('confirm-render-btn').addEventListener('click', () => {
             document.getElementById('step-review').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 参数已锁定，正在渲染成片...</p>';
+            document.getElementById('processing-title').textContent = "本地 SVD 视频生成模型 GPU 渲染中，请稍候...";
+            terminalScreen.innerHTML = '<p class="highlight">> 参数已锁定，SVD 模型正在根据首帧与剧本渲染 AI 视频...</p>';
             
             fetch(`${adamApiUrl}/render`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     final_prompt: document.getElementById('review-script').value,
                     audio_text: document.getElementById('review-audio-text').value
@@ -205,12 +198,16 @@
                 const videoUrl = URL.createObjectURL(blob);
                 document.getElementById('step-processing').style.display = 'none';
                 document.getElementById('step-result').style.display = 'block';
+                
+                const resultVideo = document.getElementById('result-video');
+                resultVideo.src = videoUrl;
+
                 const dlBtn = document.getElementById('download-btn');
                 dlBtn.href = videoUrl;
-                dlBtn.download = 'adam_final_video.mp4';
+                dlBtn.download = 'adam_final_generated.mp4';
             })
             .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> 渲染发生错误。</p>`;
+                terminalScreen.innerHTML += `<p class="warning">> 渲染发生错误: ${error.message}</p>`;
             });
         });
     </script>
