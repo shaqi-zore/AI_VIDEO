@@ -39,11 +39,10 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 强兼容版</p>
+        <p>全自动爆款视频拆解与渲染中枢 · 完美对齐版</p>
     </div>
     <div class="container">
         
-        <!-- 上传面板 -->
         <div id="step-upload">
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
@@ -55,13 +54,11 @@
             <button class="btn" id="analyze-btn" disabled>提取全部帧与动作剧本</button>
         </div>
 
-        <!-- 终端处理状态 -->
         <div id="step-processing" style="display: none; text-align: center;">
             <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">与 Colab 主机通信中...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
-        <!-- 确认与编辑面板 -->
         <div id="step-review" style="display: none; text-align: left;">
             <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px; text-align: center;">👀 拆解完成，全量参数确认</h3>
             
@@ -78,7 +75,6 @@
             <button class="btn" id="confirm-render-btn">确认剧本无误，启动 GPU 渲染</button>
         </div>
 
-        <!-- 结果展示 -->
         <div id="step-result" style="display: none; text-align: center;">
             <div class="video-placeholder">▶ 视频处理完成</div>
             <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
@@ -92,8 +88,6 @@
         const videoInput = document.getElementById('video-input');
         const analyzeBtn = document.getElementById('analyze-btn');
         const terminalScreen = document.getElementById('terminal-screen');
-        
-        // 永久固定的后端接口地址
         const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev';
 
         videoInput.addEventListener('change', function(e) {
@@ -107,7 +101,7 @@
         analyzeBtn.addEventListener('click', () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 正在上传视频至 Colab 云端...</p><p>> FFmpeg 正在按 10 秒间隔批量抽取关键帧...</p><p>> Whisper 正在听译口播音频...</p><p class="highlight">> Gemini 视觉大模型正在逐帧推演分段动作剧本...</p>';
+            terminalScreen.innerHTML = '<p>> 正在上传视频至 Colab 云端...</p><p>> FFmpeg 正在按 10 秒间隔抽取关键帧...</p><p>> Whisper 正在听译音频...</p><p class="highlight">> Gemini 视觉大模型正在逐帧推演分段动作剧本...</p>';
             
             const formData = new FormData();
             formData.append('video', videoInput.files[0]);
@@ -118,30 +112,30 @@
                 body: formData 
             })
             .then(res => {
-                if (!res.ok) throw new Error('网络请求失败');
+                if (!res.ok) throw new Error('网络请求状态码异常: ' + res.status);
                 return res.json();
             })
             .then(data => {
-                console.log("后端返回的完整数据：", data);
+                console.log("成功接收后端数据：", data);
                 document.getElementById('step-processing').style.display = 'none';
                 document.getElementById('step-review').style.display = 'block';
                 
-                // 兼容渲染关键帧
+                // 渲染全部关键帧
                 const framesContainer = document.getElementById('review-keyframes-container');
                 framesContainer.innerHTML = ''; 
                 
-                const frames = data.structured_frames || data.keyframes_base64 || [];
-                frames.forEach((item, index) => {
+                const frames = data.keyframes || [];
+                frames.forEach((imgBase64, index) => {
                     const imgWrap = document.createElement('div');
                     imgWrap.style = "flex: 0 0 auto; text-align: center; width: 130px;";
                     
                     const img = document.createElement('img');
-                    img.src = (typeof item === 'string') ? item : (item.image_base64 || item.url);
+                    img.src = imgBase64;
                     img.style = "width: 100%; border-radius: 4px; object-fit: cover; border: 1px solid #444;";
                     
                     const label = document.createElement('div');
                     label.style = "font-size: 12px; color: var(--primary); margin-top: 5px; font-weight: 500;";
-                    label.textContent = `⏱️ ${item.second !== undefined ? item.second : index * 10} 秒处`;
+                    label.textContent = `⏱️ 第 ${index * 10} 秒`;
                     
                     imgWrap.appendChild(img);
                     imgWrap.appendChild(label);
@@ -149,32 +143,28 @@
                 });
 
                 // 回填口播与动作剧本
-                document.getElementById('review-audio-text').value = data.audio_text || "（无口播内容）";
-                document.getElementById('review-script').value = data.action_script || data.initial_prompt || "（无动作剧本）";
+                document.getElementById('review-audio-text').value = data.audio_text || "";
+                document.getElementById('review-script').value = data.action_script || "";
             })
             .catch(error => {
-                console.error("请求报错：", error);
-                terminalScreen.innerHTML += `<p class="warning">> API 连接失败！请检查 Colab 是否正常运行。</p>`;
+                console.error("捕获到前端错误：", error);
+                terminalScreen.innerHTML += `<p class="warning">> 发生错误: ${error.message}</p>`;
+                alert("请求失败，请检查 F12 控制台报错信息。");
             });
         });
 
         document.getElementById('confirm-render-btn').addEventListener('click', () => {
             document.getElementById('step-review').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 分段动作与剧本已锁定。</p><p>> 正在唤醒云端 GPU 渲染模型...</p><p class="highlight">> 生成中，请耐心等待...</p>';
+            terminalScreen.innerHTML = '<p>> 参数已锁定，正在唤醒云端 GPU 渲染...</p>';
             
-            const finalData = {
-                final_prompt: document.getElementById('review-script').value,
-                audio_text: document.getElementById('review-audio-text').value
-            };
-
             fetch(`${adamApiUrl}/render`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true' 
-                },
-                body: JSON.stringify(finalData)
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify({
+                    final_prompt: document.getElementById('review-script').value,
+                    audio_text: document.getElementById('review-audio-text').value
+                })
             })
             .then(res => res.blob())
             .then(blob => {
@@ -186,7 +176,7 @@
                 dlBtn.download = 'adam_final_video.mp4';
             })
             .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> 渲染过程发生网络错误。</p>`;
+                terminalScreen.innerHTML += `<p class="warning">> 渲染发生错误。</p>`;
             });
         });
     </script>
