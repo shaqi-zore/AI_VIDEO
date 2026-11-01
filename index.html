@@ -1,159 +1,99 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adam AI Video Engine</title>
-    <style>
-        :root {
-            --bg-color: #0d1117; --panel-bg: #161b22; --primary: #2ea043; --primary-hover: #3fb950;
-            --text-main: #c9d1d9; --text-muted: #8b949e; --border-color: #30363d; --terminal-bg: #010409; --terminal-text: #0aff0a;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 10px; }
-        .header h1 span { color: var(--primary); }
-        .header p { color: var(--text-muted); font-size: 14px; }
-        .container { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-        .upload-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 50px 20px; text-align: center; cursor: pointer; position: relative; }
-        .upload-area:hover { border-color: var(--primary); background-color: rgba(46, 160, 67, 0.05); }
-        .upload-area input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        .upload-icon { font-size: 40px; margin-bottom: 15px; color: var(--text-muted); }
-        .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 5px; }
-        .upload-hint { font-size: 12px; color: var(--text-muted); }
-        .btn { display: block; width: 100%; padding: 14px; margin-top: 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; }
-        .btn:hover { background-color: var(--primary-hover); }
-        .btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
-        .terminal { background-color: var(--terminal-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-top: 20px; height: 180px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-muted); text-align: left; }
-        .terminal p { margin-bottom: 6px; line-height: 1.4; }
-        .terminal .success { color: var(--terminal-text); }
-        .terminal .highlight { color: #58a6ff; }
-        .terminal .warning { color: #f0883e; }
-        .video-placeholder { width: 100%; height: 200px; background-color: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        
-        .form-label { font-size: 13px; color: var(--text-muted); margin-bottom: 5px; display: block; }
-        .form-textarea { width: 100%; background: var(--terminal-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; margin-bottom: 15px; font-family: inherit; resize: vertical; }
-        .form-textarea:focus { outline: none; border-color: var(--primary); }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 双重验证版</p>
-    </div>
-    <div class="container">
-        
-        <div id="step-upload">
-            <div class="upload-area" id="drop-zone">
-                <input type="file" id="video-input" accept="video/mp4,video/quicktime">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">拖拽原视频到此处进行 AI 拆解</div>
-                <div class="upload-hint">支持 MP4 / MOV 格式</div>
-                <div id="file-name-display" style="margin-top:15px; color:var(--primary); display:none;"></div>
-            </div>
-            <button class="btn" id="analyze-btn" disabled>提取关键帧与台词</button>
-        </div>
+!pip install fastapi python-multipart uvicorn pyngrok nest-asyncio openai-whisper -q
 
-        <div id="step-processing" style="display: none; text-align: center;">
-            <h3 style="font-size: 16px; margin-bottom: 10px;">与 Colab 主机通信中...</h3>
-            <div class="terminal" id="terminal-screen"></div>
-        </div>
+import os
+import uvicorn
+import threading
+import shutil
+import subprocess
+import whisper
+import base64
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pyngrok import ngrok
+from pydantic import BaseModel
+import nest_asyncio
 
-        <div id="step-review" style="display: none; text-align: left;">
-            <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;">👀 拆解完成，请确认参数</h3>
-            
-            <label class="form-label">提取的第一帧 (人物与动作参考):</label>
-            <img id="review-keyframe" src="" style="width: 100%; border-radius: 6px; margin-bottom: 15px; border: 1px solid var(--border-color);">
-            
-            <label class="form-label">Whisper 提取口播台词 (可修改):</label>
-            <textarea id="review-audio-text" class="form-textarea" rows="2"></textarea>
-            
-            <label class="form-label">AI 预生成 Prompt 提示词 (添加你需要的控制参数):</label>
-            <textarea id="review-prompt" class="form-textarea" rows="3"></textarea>
-            
-            <button class="btn" id="confirm-render-btn">确认参数，启动 GPU 渲染</button>
-        </div>
+# 1. 预加载 Whisper 模型
+print("Adam Engine: 正在加载 Whisper 模型...")
+whisper_model = whisper.load_model("base")
 
-        <div id="step-result" style="display: none; text-align: center;">
-            <div class="video-placeholder">▶ 视频预览 (云端处理完成)</div>
-            <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">成片已回传至本地。</p>
-            <a href="#" class="btn" id="download-btn">下载最终成片</a>
-            <a href="#" style="display: block; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: underline;" onclick="location.reload()">处理下一个视频</a>
-        </div>
-    </div>
+# 2. 清理旧配置并设置 Ngrok 密钥
+config_path = '/root/.config/ngrok/ngrok.yml'
+if os.path.exists(config_path):
+    os.remove(config_path)
+ngrok.set_auth_token("3LUFxVVafFGDYlWrrqLD7aDj1sk_bdtqkUKEcdWUJVrqB3rU")
 
-    <script>
-        const videoInput = document.getElementById('video-input');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const terminalScreen = document.getElementById('terminal-screen');
-        
-        // 已填入你的 Ngrok 地址
-        const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev';
+app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-        videoInput.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                document.getElementById('file-name-display').textContent = '已准备: ' + this.files[0].name;
-                document.getElementById('file-name-display').style.display = 'block';
-                analyzeBtn.disabled = false;
-            }
-        });
+# ==========================================
+# 接口 1：解析视频 (提取关键帧 + 听译台词)
+# ==========================================
+@app.post("/analyze")
+async def analyze_video(video: UploadFile = File(...)):
+    print(f"\n[阶段一] 接收并拆解视频: {video.filename}")
+    input_video = "/content/adam_workspace_input.mp4"
+    audio_path = "/content/adam_workspace_audio.wav"
+    keyframe_path = "/content/adam_workspace_keyframe.jpg"
 
-        analyzeBtn.addEventListener('click', () => {
-            document.getElementById('step-upload').style.display = 'none';
-            document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 正在上传视频至云端...</p><p>> FFmpeg 正在抽取关键帧...</p><p>> Whisper 正在听译音频...</p>';
-            
-            const formData = new FormData();
-            formData.append('video', videoInput.files[0]);
+    with open(input_video, "wb") as buffer:
+        shutil.copyfileobj(video.file, buffer)
 
-            fetch(`${adamApiUrl}/analyze`, { method: 'POST', body: formData })
-            .then(res => {
-                if (!res.ok) throw new Error('网络请求失败');
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById('step-processing').style.display = 'none';
-                document.getElementById('step-review').style.display = 'block';
-                
-                document.getElementById('review-keyframe').src = data.keyframe_base64;
-                document.getElementById('review-audio-text').value = data.audio_text;
-                document.getElementById('review-prompt').value = data.initial_prompt;
-            })
-            .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> API 连接失败，请检查 Ngrok 地址是否正确及 Colab 是否在运行。</p>`;
-            });
-        });
+    subprocess.run(["ffmpeg", "-y", "-i", input_video, "-q:a", "0", "-map", "a", audio_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    try:
+        audio_text = whisper_model.transcribe(audio_path)['text'].strip()
+    except:
+        audio_text = "（未检测到声音或识别失败）"
 
-        document.getElementById('confirm-render-btn').addEventListener('click', () => {
-            document.getElementById('step-review').style.display = 'none';
-            document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 参数锁定，正在唤醒云端 GPU 加载视频渲染模型...</p><p class="highlight">> 此过程耗时较长，请耐心等待...</p>';
-            
-            const finalData = {
-                final_prompt: document.getElementById('review-prompt').value,
-                audio_text: document.getElementById('review-audio-text').value
-            };
+    subprocess.run(["ffmpeg", "-y", "-i", input_video, "-vf", "select='eq(n\,0)'", "-vframes", "1", keyframe_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    with open(keyframe_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
 
-            fetch(`${adamApiUrl}/render`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalData)
-            })
-            .then(res => res.blob())
-            .then(blob => {
-                const videoUrl = URL.createObjectURL(blob);
-                document.getElementById('step-processing').style.display = 'none';
-                document.getElementById('step-result').style.display = 'block';
-                const dlBtn = document.getElementById('download-btn');
-                dlBtn.href = videoUrl;
-                dlBtn.download = 'adam_final_video.mp4';
-            })
-            .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> 渲染过程发生网络错误。</p>`;
-            });
-        });
-    </script>
-</body>
-</html>
+    initial_prompt = f"Cinematic product shot, dark aesthetic, Qingyangzi shop pine cone incense. Action reference from image."
+
+    print("[阶段一完成] 已返回解析数据供用户确认。")
+    return {
+        "status": "success",
+        "audio_text": audio_text,
+        "initial_prompt": initial_prompt,
+        "keyframe_base64": f"data:image/jpeg;base64,{encoded_string}"
+    }
+
+class RenderRequest(BaseModel):
+    final_prompt: str
+    audio_text: str
+
+# ==========================================
+# 接口 2：正式渲染 (接收前端确认后的参数)
+# ==========================================
+@app.post("/render")
+async def render_video(request: RenderRequest):
+    print(f"\n[阶段二] 收到前端最终确认参数，启动渲染程序...")
+    print(f"锁定 Prompt: {request.final_prompt}")
+    print(f"锁定 台词: {request.audio_text}")
+    
+    # ⚠️ 未来在这里接入 CogVideoX 视频模型
+    # 目前测试阶段：原样返回视频以打通链路
+    final_output = "/content/adam_workspace_input.mp4" 
+    
+    print(f"[阶段二完成] 视频生成完毕，回传前端。")
+    return FileResponse(final_output, media_type="video/mp4", filename=f"adam_final.mp4")
+
+# 3. 启动服务
+ngrok.kill()
+ngrok_tunnel = ngrok.connect(8000)
+print("\n" + "="*64)
+print(f"Adam 核心模型引擎已上线！你的最新前端接口地址是:")
+public_url = ngrok_tunnel.public_url
+print(public_url)
+print("="*64 + "\n")
+
+nest_asyncio.apply()
+def run_server():
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+thread = threading.Thread(target=run_server, daemon=True)
+thread.start()
