@@ -17,199 +17,38 @@
             --terminal-text: #0aff0a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .header h1 span {
-            color: var(--primary);
-        }
-
-        .header p {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .container {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 600px;
-            padding: 30px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        }
-
-        /* 拖拽上传区 */
-        .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 50px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .upload-area:hover, .upload-area.dragover {
-            border-color: var(--primary);
-            background-color: rgba(46, 160, 67, 0.05);
-        }
-
-        .upload-area input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            color: var(--text-muted);
-        }
-
-        .upload-text {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .upload-hint {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        /* 按钮 */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            margin-top: 20px;
-            background-color: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:disabled {
-            background-color: var(--border-color);
-            color: var(--text-muted);
-            cursor: not-allowed;
-        }
-
-        /* 终端控制台 */
-        .terminal {
-            display: none;
-            background-color: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 20px;
-            height: 250px;
-            overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            color: var(--text-muted);
-            text-align: left;
-        }
-
-        .terminal p {
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 28px; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
+        .header h1 span { color: var(--primary); }
+        .header p { color: var(--text-muted); font-size: 14px; }
+        .container { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .upload-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background-color: rgba(46, 160, 67, 0.05); }
+        .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-icon { font-size: 40px; margin-bottom: 15px; color: var(--text-muted); }
+        .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 5px; }
+        .upload-hint { font-size: 12px; color: var(--text-muted); }
+        .btn { display: block; width: 100%; padding: 14px; margin-top: 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; text-align: center; text-decoration: none; }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+        .terminal { display: none; background-color: var(--terminal-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-top: 20px; height: 250px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: var(--text-muted); text-align: left; }
+        .terminal p { margin-bottom: 6px; line-height: 1.4; }
         .terminal .success { color: var(--terminal-text); }
         .terminal .highlight { color: #58a6ff; }
         .terminal .warning { color: #f0883e; }
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background-color: var(--terminal-text);
-            animation: blink 1s step-end infinite;
-            vertical-align: middle;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* 结果展示区 */
-        .result-area {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .video-placeholder {
-            width: 100%;
-            height: 200px;
-            background-color: #000;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* 选中的文件提示 */
-        #file-name-display {
-            margin-top: 15px;
-            font-size: 14px;
-            color: var(--primary);
-            font-weight: 500;
-            display: none;
-        }
+        .result-area { display: none; text-align: center; margin-top: 20px; }
+        .video-placeholder { width: 100%; height: 200px; background-color: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); margin-bottom: 20px; border: 1px solid var(--border-color); }
+        #file-name-display { margin-top: 15px; font-size: 14px; color: var(--primary); font-weight: 500; display: none; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
         <p>全自动爆款视频拆解与渲染中枢 · 跨境专版</p>
     </div>
-
     <div class="container">
-        <!-- 初始上传界面 -->
         <div id="step-upload">
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
@@ -221,22 +60,16 @@
             <button class="btn" id="generate-btn" disabled>启动渲染引擎</button>
         </div>
 
-        <!-- 终端运行界面 -->
         <div id="step-processing" style="display: none;">
             <h3 style="font-size: 16px; margin-bottom: 10px; text-align: center;">核心引擎运转中...</h3>
-            <div class="terminal" id="terminal-screen">
-                <!-- 模拟日志输出 -->
-            </div>
+            <div class="terminal" id="terminal-screen"></div>
         </div>
 
-        <!-- 结果下载界面 -->
         <div id="step-result" class="result-area">
-            <div class="video-placeholder">
-                ▶ 视频预览 (当前为前端演示模式)
-            </div>
+            <div class="video-placeholder">▶ 视频预览 (云端处理完成)</div>
             <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">音频对齐完成，防幻觉约束已生效。</p>
-            <a href="#" class="btn" onclick="resetEngine()">下载高清成片</a>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">视频已通过 Colab GPU 生成并返回。</p>
+            <a href="#" class="btn" id="download-btn">下载高清成片</a>
             <a href="#" style="display: block; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: underline;" onclick="resetEngine()">处理下一个视频</a>
         </div>
     </div>
@@ -247,8 +80,8 @@
         const fileNameDisplay = document.getElementById('file-name-display');
         const dropZone = document.getElementById('drop-zone');
         const terminalScreen = document.getElementById('terminal-screen');
+        const downloadBtn = document.getElementById('download-btn');
 
-        // 文件选择监听
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
                 fileNameDisplay.textContent = '已选择: ' + this.files[0].name;
@@ -260,74 +93,49 @@
             }
         });
 
-        // 拖拽高亮效果
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
+            e.preventDefault(); dropZone.classList.remove('dragover');
             if (e.dataTransfer.files.length) {
                 videoInput.files = e.dataTransfer.files;
                 videoInput.dispatchEvent(new Event('change'));
             }
         });
 
-        // 模拟执行流程
-        const logs = [
-            "<span class='highlight'>[System]</span> Adam 引擎安全连接建立中...",
-            "<span class='highlight'>[Upload]</span> 视频接收完毕，推送至底层云端...",
-            "<span class='warning'>[FFmpeg]</span> 正在抽离独立音频轨道...",
-            "<span class='success'>[FFmpeg]</span> 音频提取成功 (PCM 16kHz)。",
-            "<span class='warning'>[Whisper]</span> 唤醒本地 Whisper 模型进行听译...",
-            "<span class='success'>[Whisper]</span> 字幕转录完成，置信度 98%。",
-            "<span class='warning'>[LLM]</span> 注入 Adam 防幻觉系统指令，开始拆解 10 秒分镜...",
-            "<span class='success'>[LLM]</span> 结构化 JSON 生成完毕，严格锚定松塔香视觉元素。",
-            "<span class='warning'>[Video Engine]</span> 分配 GPU 算力，加载本地扩散模型...",
-            "<span class='highlight'>[GPU]</span> 渲染分段 1/3... 缓冲中",
-            "<span class='highlight'>[GPU]</span> 渲染分段 2/3... 缓冲中",
-            "<span class='highlight'>[GPU]</span> 渲染分段 3/3... 缓冲中",
-            "<span class='warning'>[FFmpeg]</span> 正在缝合无缝视频片段并混入原始音频...",
-            "<span class='success'>[System]</span> 爆款视频组装完毕！通道已开启。"
-        ];
-
         generateBtn.addEventListener('click', () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
+            terminalScreen.innerHTML = '<p>> Adam 正在连接 Colab 后端服务器...</p><p>> 正在上传视频至云端 GPU...</p>';
             
-            terminalScreen.innerHTML = '';
-            let i = 0;
-            
-            function printLog() {
-                if (i < logs.length) {
-                    terminalScreen.innerHTML += `<p>> ${logs[i]}</p>`;
-                    terminalScreen.innerHTML += `<div class="cursor" id="cursor"></div>`;
-                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
-                    
-                    setTimeout(() => {
-                        const cursor = document.getElementById('cursor');
-                        if(cursor) cursor.remove();
-                        i++;
-                        // 随机延迟模拟真实处理时间
-                        const delay = i === 10 || i === 11 || i === 12 ? 1500 : Math.random() * 600 + 400;
-                        setTimeout(printLog, delay);
-                    }, 100);
-                } else {
-                    // 处理完成，切换到结果页
-                    setTimeout(() => {
-                        document.getElementById('step-processing').style.display = 'none';
-                        document.getElementById('step-result').style.display = 'block';
-                    }, 1000);
-                }
-            }
-            printLog();
+            const formData = new FormData();
+            formData.append('video', videoInput.files[0]);
+
+            // 这里已经为你填入了刚刚生成的真实接口地址
+            const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev/generate';
+
+            fetch(adamApiUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('网络请求失败');
+                terminalScreen.innerHTML += '<p class="highlight">> GPU 处理完毕，正在打包文件...</p>';
+                terminalScreen.innerHTML += '<p class="success">> 数据回传成功！</p>';
+                return response.blob();
+            })
+            .then(blob => {
+                const videoUrl = URL.createObjectURL(blob);
+                document.getElementById('step-processing').style.display = 'none';
+                document.getElementById('step-result').style.display = 'block';
+                downloadBtn.href = videoUrl;
+                downloadBtn.download = 'adam_final_video.mp4';
+            })
+            .catch(error => {
+                terminalScreen.innerHTML += `<p class="warning">> API 连接失败: 请检查 Colab 后端是否在运行，以及 ngrok 链接是否填写正确。</p>`;
+            });
         });
 
-        // 返回重置
         function resetEngine() {
             document.getElementById('step-result').style.display = 'none';
             document.getElementById('step-upload').style.display = 'block';
