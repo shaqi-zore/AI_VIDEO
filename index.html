@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adam AI Video Engine</title>
+    <title>Adam AI Video Engine - Long Video Edition</title>
     <style>
         :root {
             --bg-color: #0d1117; --panel-bg: #161b22; --primary: #2ea043; --primary-hover: #3fb950;
@@ -39,7 +39,7 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · Cloudflare Tunnel 完美版</p>
+        <p>长视频异步流水线 · 严格 10 秒步长高精度抽帧</p>
     </div>
     <div class="container">
         
@@ -48,16 +48,16 @@
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
                 <div class="upload-icon">📁</div>
-                <div class="upload-text">拖拽原视频到此处进行 AI 拆解</div>
-                <div class="upload-hint">支持 MP4 / MOV 格式</div>
+                <div class="upload-text">拖拽 1 分钟以上原视频到此处</div>
+                <div class="upload-hint">支持 MP4 / MOV 格式 · 异步架构零超时</div>
                 <div id="file-name-display" style="margin-top:15px; color:var(--primary); font-weight:bold; display:none;"></div>
             </div>
-            <button class="btn" id="analyze-btn" disabled>提取全部帧与动作剧本</button>
+            <button class="btn" id="analyze-btn" disabled>启动异步智能拆解</button>
         </div>
 
-        <!-- 终端处理状态 -->
+        <!-- 终端处理状态（轮询中） -->
         <div id="step-processing" style="display: none; text-align: center;">
-            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">与 Colab 主机通信中 (已启用自动重试机制)...</h3>
+            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">后台异步处理中，请稍候...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
@@ -65,7 +65,7 @@
         <div id="step-review" style="display: none; text-align: left;">
             <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px; text-align: center;">👀 拆解完成，全量参数确认</h3>
             
-            <label class="form-label">1. 提取的全部关键帧 (按 10 秒时间轴横向排列):</label>
+            <label class="form-label">1. 提取的全部关键帧 (严格 10 秒时间轴横向排列):</label>
             <div id="review-keyframes-container" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background: var(--terminal-bg);">
             </div>
             
@@ -94,7 +94,7 @@
         const terminalScreen = document.getElementById('terminal-screen');
         
         // 【已绑定最新 Cloudflare Tunnel 隧道地址】
-        const adamApiUrl = 'https://advisory-workforce-clarity-wal.trycloudflare.com';
+        const adamApiUrl = 'https://author-speed-mobiles-bathroom.trycloudflare.com';
 
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
@@ -104,65 +104,93 @@
             }
         });
 
-        analyzeBtn.addEventListener('click', () => {
+        analyzeBtn.addEventListener('click', async () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 正在上传视频至 Colab 云端...</p><p>> FFmpeg 正在抽取关键帧...</p><p>> Whisper 正在听译音频...</p><p class="highlight">> Gemini 视觉大模型正在生成动作剧本...</p>';
+            terminalScreen.innerHTML = '<p>> 正在秒级上传长视频至 Colab 后台任务队列...</p>';
             
             const formData = new FormData();
             formData.append('video', videoInput.files[0]);
 
-            fetch(`${adamApiUrl}/analyze`, { 
-                method: 'POST',
-                headers: { 'ngrok-skip-browser-warning': 'true' },
-                body: formData 
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('网络请求状态码异常: ' + res.status);
-                return res.json();
-            })
-            .then(data => {
-                console.log("后端返回数据：", data);
-                document.getElementById('step-processing').style.display = 'none';
-                document.getElementById('step-review').style.display = 'block';
-                
-                // 渲染关键帧
-                const framesContainer = document.getElementById('review-keyframes-container');
-                framesContainer.innerHTML = ''; 
-                
-                const frames = data.keyframes || [];
-                frames.forEach((imgBase64, index) => {
-                    const imgWrap = document.createElement('div');
-                    imgWrap.style = "flex: 0 0 auto; text-align: center; width: 130px;";
-                    
-                    const img = document.createElement('img');
-                    img.src = imgBase64;
-                    img.style = "width: 100%; border-radius: 4px; object-fit: cover; border: 1px solid #444;";
-                    
-                    const label = document.createElement('div');
-                    label.style = "font-size: 12px; color: var(--primary); margin-top: 5px; font-weight: 500;";
-                    label.textContent = `⏱️ 第 ${index * 10} 秒`;
-                    
-                    imgWrap.appendChild(img);
-                    imgWrap.appendChild(label);
-                    framesContainer.appendChild(imgWrap);
+            try {
+                // 1. 发起异步任务创建请求（秒级返回 task_id，绝不超时）
+                const res = await fetch(`${adamApiUrl}/analyze`, { 
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true' },
+                    body: formData 
                 });
+                
+                if (!res.ok) throw new Error('任务创建失败状态码: ' + res.status);
+                const initData = await res.json();
+                const taskId = initData.task_id;
 
-                // 回填文本
-                document.getElementById('review-audio-text').value = data.audio_text || "";
-                document.getElementById('review-script').value = data.action_script || "";
-            })
-            .catch(error => {
+                terminalScreen.innerHTML += `<p class="highlight">> 任务创建成功 (ID: ${taskId.slice(0,8)}...)，开始异步轮询后台进度...</p>`;
+
+                // 2. 启动轮询检查后台进度
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`${adamApiUrl}/task_status/${taskId}`, {
+                            headers: { 'ngrok-skip-browser-warning': 'true' }
+                        });
+                        const taskData = await statusRes.json();
+
+                        if (taskData.status === 'processing') {
+                            terminalScreen.innerHTML += `<p>> ${taskData.step}</p>`;
+                            terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                        } 
+                        else if (taskData.status === 'completed') {
+                            clearInterval(pollInterval);
+                            console.log("后台处理完成数据：", taskData);
+                            
+                            document.getElementById('step-processing').style.display = 'none';
+                            document.getElementById('step-review').style.display = 'block';
+                            
+                            // 渲染高精度关键帧
+                            const framesContainer = document.getElementById('review-keyframes-container');
+                            framesContainer.innerHTML = ''; 
+                            
+                            const frames = taskData.keyframes || [];
+                            frames.forEach((imgBase64, index) => {
+                                const imgWrap = document.createElement('div');
+                                imgWrap.style = "flex: 0 0 auto; text-align: center; width: 130px;";
+                                
+                                const img = document.createElement('img');
+                                img.src = imgBase64;
+                                img.style = "width: 100%; border-radius: 4px; object-fit: cover; border: 1px solid #444;";
+                                
+                                const label = document.createElement('div');
+                                label.style = "font-size: 12px; color: var(--primary); margin-top: 5px; font-weight: 500;";
+                                label.textContent = `⏱️ 第 ${index * 10} 秒`;
+                                
+                                imgWrap.appendChild(img);
+                                imgWrap.appendChild(label);
+                                framesContainer.appendChild(imgWrap);
+                            });
+
+                            // 回填文本
+                            document.getElementById('review-audio-text').value = taskData.audio_text || "";
+                            document.getElementById('review-script').value = taskData.action_script || "";
+                        }
+                        else if (taskData.status === 'failed') {
+                            clearInterval(pollInterval);
+                            throw new Error(taskData.error || '后台处理异常');
+                        }
+                    } catch (pollErr) {
+                        console.warn("轮询网络波动，继续尝试...", pollErr);
+                    }
+                }, 3000); // 每 3 秒轮询一次
+
+            } catch (error) {
                 console.error("前端报错：", error);
                 terminalScreen.innerHTML += `<p class="warning">> 发生错误: ${error.message}</p>`;
                 alert("请求失败，请检查控制台。");
-            });
+            }
         });
 
         document.getElementById('confirm-render-btn').addEventListener('click', () => {
             document.getElementById('step-review').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 参数已锁定，正在渲染...</p>';
+            terminalScreen.innerHTML = '<p>> 参数已锁定，正在渲染成片...</p>';
             
             fetch(`${adamApiUrl}/render`, {
                 method: 'POST',
