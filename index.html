@@ -39,10 +39,11 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 完美对齐版</p>
+        <p>全自动爆款视频拆解与渲染中枢 · 调试版</p>
     </div>
     <div class="container">
         
+        <!-- 上传面板 -->
         <div id="step-upload">
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
@@ -54,11 +55,13 @@
             <button class="btn" id="analyze-btn" disabled>提取全部帧与动作剧本</button>
         </div>
 
+        <!-- 终端处理状态 -->
         <div id="step-processing" style="display: none; text-align: center;">
             <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-main);">与 Colab 主机通信中...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
+        <!-- 确认与编辑面板 -->
         <div id="step-review" style="display: none; text-align: left;">
             <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px; text-align: center;">👀 拆解完成，全量参数确认</h3>
             
@@ -75,6 +78,7 @@
             <button class="btn" id="confirm-render-btn">确认剧本无误，启动 GPU 渲染</button>
         </div>
 
+        <!-- 结果展示 -->
         <div id="step-result" style="display: none; text-align: center;">
             <div class="video-placeholder">▶ 视频处理完成</div>
             <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
@@ -99,9 +103,10 @@
         });
 
         analyzeBtn.addEventListener('click', () => {
+            alert("点击了按钮，开始发送请求！"); // 弹窗1：确认点击事件触发
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 正在上传视频至 Colab 云端...</p><p>> FFmpeg 正在按 10 秒间隔抽取关键帧...</p><p>> Whisper 正在听译音频...</p><p class="highlight">> Gemini 视觉大模型正在逐帧推演分段动作剧本...</p>';
+            terminalScreen.innerHTML = '<p>> 正在向云端发送请求...</p>';
             
             const formData = new FormData();
             formData.append('video', videoInput.files[0]);
@@ -112,15 +117,16 @@
                 body: formData 
             })
             .then(res => {
-                if (!res.ok) throw new Error('网络请求状态码异常: ' + res.status);
+                alert("收到后端响应，状态码: " + res.status); // 弹窗2：确认后端有回应
                 return res.json();
             })
             .then(data => {
-                console.log("成功接收后端数据：", data);
+                alert("成功解析 JSON 数据！"); // 弹窗3：确认数据解析成功
+                console.log("返回数据:", data);
+                
                 document.getElementById('step-processing').style.display = 'none';
                 document.getElementById('step-review').style.display = 'block';
                 
-                // 渲染全部关键帧
                 const framesContainer = document.getElementById('review-keyframes-container');
                 framesContainer.innerHTML = ''; 
                 
@@ -142,42 +148,17 @@
                     framesContainer.appendChild(imgWrap);
                 });
 
-                // 回填口播与动作剧本
                 document.getElementById('review-audio-text').value = data.audio_text || "";
                 document.getElementById('review-script').value = data.action_script || "";
             })
             .catch(error => {
-                console.error("捕获到前端错误：", error);
-                terminalScreen.innerHTML += `<p class="warning">> 发生错误: ${error.message}</p>`;
-                alert("请求失败，请检查 F12 控制台报错信息。");
+                alert("捕获到致命错误: " + error.message); // 弹窗4：如果报错会直接弹出来
+                console.error(error);
             });
         });
 
         document.getElementById('confirm-render-btn').addEventListener('click', () => {
-            document.getElementById('step-review').style.display = 'none';
-            document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> 参数已锁定，正在唤醒云端 GPU 渲染...</p>';
-            
-            fetch(`${adamApiUrl}/render`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({
-                    final_prompt: document.getElementById('review-script').value,
-                    audio_text: document.getElementById('review-audio-text').value
-                })
-            })
-            .then(res => res.blob())
-            .then(blob => {
-                const videoUrl = URL.createObjectURL(blob);
-                document.getElementById('step-processing').style.display = 'none';
-                document.getElementById('step-result').style.display = 'block';
-                const dlBtn = document.getElementById('download-btn');
-                dlBtn.href = videoUrl;
-                dlBtn.download = 'adam_final_video.mp4';
-            })
-            .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> 渲染发生错误。</p>`;
-            });
+            alert("点击了确认渲染！");
         });
     </script>
 </body>
