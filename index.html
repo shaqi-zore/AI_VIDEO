@@ -6,143 +6,164 @@
     <title>Adam AI Video Engine</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --panel-bg: #161b22;
-            --primary: #2ea043;
-            --primary-hover: #3fb950;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
-            --terminal-bg: #010409;
-            --terminal-text: #0aff0a;
+            --bg-color: #0d1117; --panel-bg: #161b22; --primary: #2ea043; --primary-hover: #3fb950;
+            --text-main: #c9d1d9; --text-muted: #8b949e; --border-color: #30363d; --terminal-bg: #010409; --terminal-text: #0aff0a;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
         .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 28px; font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
+        .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 10px; }
         .header h1 span { color: var(--primary); }
         .header p { color: var(--text-muted); font-size: 14px; }
         .container { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-        .upload-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; }
-        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background-color: rgba(46, 160, 67, 0.05); }
-        .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 50px 20px; text-align: center; cursor: pointer; position: relative; }
+        .upload-area:hover { border-color: var(--primary); background-color: rgba(46, 160, 67, 0.05); }
+        .upload-area input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .upload-icon { font-size: 40px; margin-bottom: 15px; color: var(--text-muted); }
         .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 5px; }
         .upload-hint { font-size: 12px; color: var(--text-muted); }
-        .btn { display: block; width: 100%; padding: 14px; margin-top: 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; text-align: center; text-decoration: none; }
+        .btn { display: block; width: 100%; padding: 14px; margin-top: 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; }
         .btn:hover { background-color: var(--primary-hover); }
         .btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
-        .terminal { display: none; background-color: var(--terminal-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-top: 20px; height: 250px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: var(--text-muted); text-align: left; }
+        .terminal { background-color: var(--terminal-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-top: 20px; height: 180px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-muted); text-align: left; }
         .terminal p { margin-bottom: 6px; line-height: 1.4; }
         .terminal .success { color: var(--terminal-text); }
         .terminal .highlight { color: #58a6ff; }
         .terminal .warning { color: #f0883e; }
-        .result-area { display: none; text-align: center; margin-top: 20px; }
         .video-placeholder { width: 100%; height: 200px; background-color: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        #file-name-display { margin-top: 15px; font-size: 14px; color: var(--primary); font-weight: 500; display: none; }
+        
+        /* 表单输入框样式 */
+        .form-label { font-size: 13px; color: var(--text-muted); margin-bottom: 5px; display: block; }
+        .form-textarea { width: 100%; background: var(--terminal-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; margin-bottom: 15px; font-family: inherit; resize: vertical; }
+        .form-textarea:focus { outline: none; border-color: var(--primary); }
     </style>
 </head>
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 跨境专版</p>
+        <p>全自动爆款视频拆解与渲染中枢 · 双重验证版</p>
     </div>
     <div class="container">
+        
+        <!-- 步骤 1：上传视频 -->
         <div id="step-upload">
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
                 <div class="upload-icon">📁</div>
-                <div class="upload-text">点击或拖拽原视频到此处</div>
+                <div class="upload-text">拖拽原视频到此处进行 AI 拆解</div>
                 <div class="upload-hint">支持 MP4 / MOV 格式</div>
-                <div id="file-name-display"></div>
+                <div id="file-name-display" style="margin-top:15px; color:var(--primary); display:none;"></div>
             </div>
-            <button class="btn" id="generate-btn" disabled>启动渲染引擎</button>
+            <button class="btn" id="analyze-btn" disabled>提取关键帧与台词</button>
         </div>
 
-        <div id="step-processing" style="display: none;">
-            <h3 style="font-size: 16px; margin-bottom: 10px; text-align: center;">核心引擎运转中...</h3>
+        <!-- 步骤 2：终端过渡动画 -->
+        <div id="step-processing" style="display: none; text-align: center;">
+            <h3 style="font-size: 16px; margin-bottom: 10px;">与 Colab 主机通信中...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
-        <div id="step-result" class="result-area">
+        <!-- 步骤 3：人工确认与编辑区 -->
+        <div id="step-review" style="display: none; text-align: left;">
+            <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;">👀 拆解完成，请确认参数</h3>
+            
+            <label class="form-label">提取的第一帧 (人物与动作参考):</label>
+            <img id="review-keyframe" src="" style="width: 100%; border-radius: 6px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+            
+            <label class="form-label">Whisper 提取口播台词 (可修改):</label>
+            <textarea id="review-audio-text" class="form-textarea" rows="2"></textarea>
+            
+            <label class="form-label">AI 预生成 Prompt 提示词 (添加你需要的控制参数):</label>
+            <textarea id="review-prompt" class="form-textarea" rows="3"></textarea>
+            
+            <button class="btn" id="confirm-render-btn">确认参数，启动 GPU 渲染</button>
+        </div>
+
+        <!-- 步骤 4：生成结果 -->
+        <div id="step-result" style="display: none; text-align: center;">
             <div class="video-placeholder">▶ 视频预览 (云端处理完成)</div>
             <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">视频已通过 Colab GPU 生成并返回。</p>
-            <a href="#" class="btn" id="download-btn">下载高清成片</a>
-            <a href="#" style="display: block; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: underline;" onclick="resetEngine()">处理下一个视频</a>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">成片已回传至本地。</p>
+            <a href="#" class="btn" id="download-btn">下载最终成片</a>
+            <a href="#" style="display: block; margin-top: 15px; color: var(--text-muted); font-size: 13px; text-decoration: underline;" onclick="location.reload()">处理下一个视频</a>
         </div>
     </div>
 
     <script>
         const videoInput = document.getElementById('video-input');
-        const generateBtn = document.getElementById('generate-btn');
-        const fileNameDisplay = document.getElementById('file-name-display');
-        const dropZone = document.getElementById('drop-zone');
+        const analyzeBtn = document.getElementById('analyze-btn');
         const terminalScreen = document.getElementById('terminal-screen');
-        const downloadBtn = document.getElementById('download-btn');
+        
+        // ==========================================
+        // ⚠️ 在这里填入你的 Colab Ngrok 链接 (不要丢掉单引号)
+        // ==========================================
+        const adamApiUrl = 'https://填入你的ngrok网址.ngrok-free.dev';
 
+        // 监听文件上传
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
-                fileNameDisplay.textContent = '已选择: ' + this.files[0].name;
-                fileNameDisplay.style.display = 'block';
-                generateBtn.disabled = false;
-            } else {
-                fileNameDisplay.style.display = 'none';
-                generateBtn.disabled = true;
+                document.getElementById('file-name-display').textContent = '已准备: ' + this.files[0].name;
+                document.getElementById('file-name-display').style.display = 'block';
+                analyzeBtn.disabled = false;
             }
         });
 
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault(); dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                videoInput.files = e.dataTransfer.files;
-                videoInput.dispatchEvent(new Event('change'));
-            }
-        });
-
-        generateBtn.addEventListener('click', () => {
+        // 阶段一：上传视频并获取拆解数据
+        analyzeBtn.addEventListener('click', () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
-            terminalScreen.innerHTML = '<p>> Adam 正在连接 Colab 后端服务器...</p><p>> 正在上传视频至云端 GPU...</p>';
+            terminalScreen.innerHTML = '<p>> 正在上传视频至云端...</p><p>> FFmpeg 正在抽取关键帧...</p><p>> Whisper 正在听译音频...</p>';
             
             const formData = new FormData();
             formData.append('video', videoInput.files[0]);
 
-            // 这里已经为你填入了刚刚生成的真实接口地址
-            const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev/generate';
+            fetch(`${adamApiUrl}/analyze`, { method: 'POST', body: formData })
+            .then(res => {
+                if (!res.ok) throw new Error('网络请求失败');
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('step-processing').style.display = 'none';
+                document.getElementById('step-review').style.display = 'block';
+                
+                document.getElementById('review-keyframe').src = data.keyframe_base64;
+                document.getElementById('review-audio-text').value = data.audio_text;
+                document.getElementById('review-prompt').value = data.initial_prompt;
+            })
+            .catch(error => {
+                terminalScreen.innerHTML += `<p class="warning">> API 连接失败，请检查 Ngrok 地址是否正确及 Colab 是否在运行。</p>`;
+            });
+        });
 
-            fetch(adamApiUrl, {
+        // 阶段二：提交用户确认后的参数，开始渲染
+        document.getElementById('confirm-render-btn').addEventListener('click', () => {
+            document.getElementById('step-review').style.display = 'none';
+            document.getElementById('step-processing').style.display = 'block';
+            terminalScreen.innerHTML = '<p>> 参数锁定，正在唤醒云端 GPU 加载视频渲染模型...</p><p class="highlight">> 此过程耗时较长，请耐心等待...</p>';
+            
+            const finalData = {
+                final_prompt: document.getElementById('review-prompt').value,
+                audio_text: document.getElementById('review-audio-text').value
+            };
+
+            fetch(`${adamApiUrl}/render`, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalData)
             })
-            .then(response => {
-                if (!response.ok) throw new Error('网络请求失败');
-                terminalScreen.innerHTML += '<p class="highlight">> GPU 处理完毕，正在打包文件...</p>';
-                terminalScreen.innerHTML += '<p class="success">> 数据回传成功！</p>';
-                return response.blob();
-            })
+            .then(res => res.blob())
             .then(blob => {
                 const videoUrl = URL.createObjectURL(blob);
                 document.getElementById('step-processing').style.display = 'none';
                 document.getElementById('step-result').style.display = 'block';
-                downloadBtn.href = videoUrl;
-                downloadBtn.download = 'adam_final_video.mp4';
+                const dlBtn = document.getElementById('download-btn');
+                dlBtn.href = videoUrl;
+                dlBtn.download = 'adam_final_video.mp4';
             })
             .catch(error => {
-                terminalScreen.innerHTML += `<p class="warning">> API 连接失败: 请检查 Colab 后端是否在运行，以及 ngrok 链接是否填写正确。</p>`;
+                terminalScreen.innerHTML += `<p class="warning">> 渲染过程发生网络错误。</p>`;
             });
         });
-
-        function resetEngine() {
-            document.getElementById('step-result').style.display = 'none';
-            document.getElementById('step-upload').style.display = 'block';
-            videoInput.value = '';
-            fileNameDisplay.style.display = 'none';
-            generateBtn.disabled = true;
-        }
     </script>
 </body>
 </html>
