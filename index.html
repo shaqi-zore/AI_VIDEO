@@ -39,7 +39,7 @@
 <body>
     <div class="header">
         <h1><span>Adam</span> AI Video Engine</h1>
-        <p>全自动爆款视频拆解与渲染中枢 · 全量信息回显版</p>
+        <p>全自动爆款视频拆解与渲染中枢 · 强兼容版</p>
     </div>
     <div class="container">
         
@@ -122,24 +122,26 @@
                 return res.json();
             })
             .then(data => {
+                console.log("后端返回的完整数据：", data);
                 document.getElementById('step-processing').style.display = 'none';
                 document.getElementById('step-review').style.display = 'block';
                 
-                // 动态渲染全部关键帧到横向滚动容器
+                // 兼容渲染关键帧
                 const framesContainer = document.getElementById('review-keyframes-container');
                 framesContainer.innerHTML = ''; 
                 
-                data.structured_frames.forEach(item => {
+                const frames = data.structured_frames || data.keyframes_base64 || [];
+                frames.forEach((item, index) => {
                     const imgWrap = document.createElement('div');
                     imgWrap.style = "flex: 0 0 auto; text-align: center; width: 130px;";
                     
                     const img = document.createElement('img');
-                    img.src = item.image_base64;
+                    img.src = (typeof item === 'string') ? item : (item.image_base64 || item.url);
                     img.style = "width: 100%; border-radius: 4px; object-fit: cover; border: 1px solid #444;";
                     
                     const label = document.createElement('div');
                     label.style = "font-size: 12px; color: var(--primary); margin-top: 5px; font-weight: 500;";
-                    label.textContent = `⏱️ ${item.second} 秒处`;
+                    label.textContent = `⏱️ ${item.second !== undefined ? item.second : index * 10} 秒处`;
                     
                     imgWrap.appendChild(img);
                     imgWrap.appendChild(label);
@@ -147,10 +149,11 @@
                 });
 
                 // 回填口播与动作剧本
-                document.getElementById('review-audio-text').value = data.audio_text;
-                document.getElementById('review-script').value = data.action_script;
+                document.getElementById('review-audio-text').value = data.audio_text || "（无口播内容）";
+                document.getElementById('review-script').value = data.action_script || data.initial_prompt || "（无动作剧本）";
             })
             .catch(error => {
+                console.error("请求报错：", error);
                 terminalScreen.innerHTML += `<p class="warning">> API 连接失败！请检查 Colab 是否正常运行。</p>`;
             });
         });
