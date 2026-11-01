@@ -32,7 +32,6 @@
         .terminal .warning { color: #f0883e; }
         .video-placeholder { width: 100%; height: 200px; background-color: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); margin-bottom: 20px; border: 1px solid var(--border-color); }
         
-        /* 表单输入框样式 */
         .form-label { font-size: 13px; color: var(--text-muted); margin-bottom: 5px; display: block; }
         .form-textarea { width: 100%; background: var(--terminal-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; margin-bottom: 15px; font-family: inherit; resize: vertical; }
         .form-textarea:focus { outline: none; border-color: var(--primary); }
@@ -45,7 +44,6 @@
     </div>
     <div class="container">
         
-        <!-- 步骤 1：上传视频 -->
         <div id="step-upload">
             <div class="upload-area" id="drop-zone">
                 <input type="file" id="video-input" accept="video/mp4,video/quicktime">
@@ -57,13 +55,11 @@
             <button class="btn" id="analyze-btn" disabled>提取关键帧与台词</button>
         </div>
 
-        <!-- 步骤 2：终端过渡动画 -->
         <div id="step-processing" style="display: none; text-align: center;">
             <h3 style="font-size: 16px; margin-bottom: 10px;">与 Colab 主机通信中...</h3>
             <div class="terminal" id="terminal-screen"></div>
         </div>
 
-        <!-- 步骤 3：人工确认与编辑区 -->
         <div id="step-review" style="display: none; text-align: left;">
             <h3 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;">👀 拆解完成，请确认参数</h3>
             
@@ -79,7 +75,6 @@
             <button class="btn" id="confirm-render-btn">确认参数，启动 GPU 渲染</button>
         </div>
 
-        <!-- 步骤 4：生成结果 -->
         <div id="step-result" style="display: none; text-align: center;">
             <div class="video-placeholder">▶ 视频预览 (云端处理完成)</div>
             <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--terminal-text);">渲染成功！</h3>
@@ -94,12 +89,9 @@
         const analyzeBtn = document.getElementById('analyze-btn');
         const terminalScreen = document.getElementById('terminal-screen');
         
-        // ==========================================
-        // ⚠️ 在这里填入你的 Colab Ngrok 链接 (不要丢掉单引号)
-        // ==========================================
-        const adamApiUrl = 'https://填入你的ngrok网址.ngrok-free.dev';
+        // 已填入你的 Ngrok 地址
+        const adamApiUrl = 'https://unnamed-giant-evoke.ngrok-free.dev';
 
-        // 监听文件上传
         videoInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
                 document.getElementById('file-name-display').textContent = '已准备: ' + this.files[0].name;
@@ -108,7 +100,6 @@
             }
         });
 
-        // 阶段一：上传视频并获取拆解数据
         analyzeBtn.addEventListener('click', () => {
             document.getElementById('step-upload').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
@@ -135,7 +126,6 @@
             });
         });
 
-        // 阶段二：提交用户确认后的参数，开始渲染
         document.getElementById('confirm-render-btn').addEventListener('click', () => {
             document.getElementById('step-review').style.display = 'none';
             document.getElementById('step-processing').style.display = 'block';
